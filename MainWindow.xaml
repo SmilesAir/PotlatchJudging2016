@@ -1,0 +1,654 @@
+﻿<Window x:Class="Potlatch_Judger.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Potlatch 2016" Height="600" Width="700"
+        Loaded="Window_Loaded"
+        Closing="Window_Closing"
+        Name="MainWindowObj"
+        KeyDown="MainWindowObj_KeyDown"
+        SizeChanged="MainWindowObj_SizeChanged">
+
+
+    <Window.Resources>
+        <!-- This style is used for buttons, to remove the WPF default 'animated' mouse over effect -->
+        <Style x:Key="MyButtonStyle" TargetType="Button">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Name="border" 
+                            BorderThickness="1"
+                            Padding="4,2" 
+                            BorderBrush="DarkGray" 
+                            CornerRadius="3" 
+                            Background="{TemplateBinding Background}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="BorderBrush" Value="Black" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="alternatingListViewItemStyle" TargetType="{x:Type ListViewItem}">
+            <Style.Triggers>
+                <!-- setting up triggers for alternate background colors -->
+                <Trigger Property="ItemsControl.AlternationIndex" Value="0">
+                    <Setter Property="Background" Value="LightGray"></Setter>
+                </Trigger>
+                <Trigger Property="ItemsControl.AlternationIndex" Value="1">
+                    <Setter Property="Background" Value="Cornsilk"></Setter>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <Menu Grid.Row="0" IsMainMenu="True" Margin="0,0,0,5">
+            <MenuItem Header="_File">
+                <MenuItem Header="_Set Results Folder..." Click="MenuItem_SetResultFolder"/>
+                <MenuItem Header="Send_TwoPointBackup" Click="MenuItem_SendTwoPointBackup"/>
+                <Separator/>
+                <MenuItem Header="E_xit" Click="MenuItem_Exit"/>
+            </MenuItem>
+            <MenuItem Header="_Window">
+                <MenuItem Header="Judge _Chooser" Click="JudgerChooser_Click"/>
+                <MenuItem Header="_Hat Team Sorter" Click="HatSorter_Click"/>
+            </MenuItem>
+        </Menu>
+        <TabControl Grid.Row="1" Name="JudgersTabControl" SelectedIndex="5">
+            <TabItem Header="Choose Judger" Visibility="Collapsed">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <Button IsEnabled="False" Name="CounterButton" Content="Counter Judger" Margin="0,0,0,2" Click="CounterButton_Click" />
+                    <Grid Grid.Row="1">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!--<Button Grid.Column="0" Name="DiffButton1" Content="Difficulty Judger 1" Margin="0,2,0,2" Click="DiffButton_Click" Tag="Judge1" />
+                        <Button Grid.Column="1" Name="DiffButton2" Content="Difficulty Judger 2" Margin="0,2,0,2" Click="DiffButton_Click" Tag="Judge2" />
+                        <Button Grid.Column="2" Name="DiffButton3" Content="Difficulty Judger 3" Margin="0,2,0,2" Click="DiffButton_Click" Tag="Judge3" />-->
+                        <Button Grid.Column="0" Name="DiffButton1" Content="Judge 1" Margin="0,2,0,2" Click="DiffButton_Click" Tag="Judge1" />
+                        <Button Grid.Column="1" Name="DiffButton2" Content="Judge 2" Margin="0,2,0,2" Click="DiffButton_Click" Tag="Judge2" />
+                        <Button Grid.Column="2" Name="DiffButton3" Content="Judge 3" Margin="0,2,0,2" Click="DiffButton_Click" Tag="Judge3" />
+                    </Grid>
+                    <Button IsEnabled="False" Name="AIButton" Content="Artistic Impression Judger" Grid.Row="2" Margin="0,2,0,2" Click="AIButton_Click" />
+                    <Button IsEnabled="False" Name="MusicButton" Content="Musicality Judger" Grid.Row="3" Margin="0,2,0,2" Click="MusicButton_Click" />
+                    <Button Name="HeadButton" Content="Head Judger" Grid.Row="4" Margin="0,2,0,2" Click="HeadButton_Click" />
+                    <Button Name="ScoreboardButton" Content="Scoreboard" Grid.Row="5" Margin="0,2,0,0" Click="ScoreboardButton_Click" />
+                </Grid>
+            </TabItem>
+            <TabItem Header="Counter" Visibility="Collapsed">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="3*"/>
+                    </Grid.RowDefinitions>
+
+                    <Grid Grid.ColumnSpan="2" Margin="0,0,0,5" Background="LightGray">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock Text="Routine:" Margin="0,0,10,0" VerticalAlignment="Center"/>
+                        <TextBlock Grid.Column="1" Text="{Binding ElementName=MainWindowObj, Path=JudgeRoutineText, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center"/>
+                        <Label Content="{Binding ElementName=MainWindowObj, Path=NetStatusStr, UpdateSourceTrigger=PropertyChanged}" Grid.Column="2" Background="{Binding ElementName=MainWindowObj, Path=NetStatusColor, UpdateSourceTrigger=PropertyChanged}"/>
+                    </Grid>
+                    
+                    <Grid Grid.Row="1" Margin="2,2,2,5" Background="LightBlue">
+                        <ScrollViewer Name="CountScrollViewer" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled" Margin="2,2,2,2">
+                            <StackPanel Name="CountStack" Orientation="Horizontal" MinHeight="40">
+                            </StackPanel>
+                        </ScrollViewer>
+                    </Grid>
+                    <Grid Grid.Row="2" Margin="2,2,2,2">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width=".5*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid Background="LightBlue" Margin="0,0,7,0">
+                            <Viewbox Margin="5,5,5,5">
+                                <TextBlock Text="{Binding ElementName=MainWindowObj, Path=TimeRemainingText, UpdateSourceTrigger=PropertyChanged}" TextAlignment="Center"/>
+                            </Viewbox>
+                        </Grid>
+                        <Grid  Grid.Column="1" Background="LightBlue">
+                            <Viewbox>
+                                <TextBlock Name="CounterText" TextAlignment="Center"/>
+                            </Viewbox>
+                        </Grid>
+                    </Grid>
+                    <Grid Grid.Row="3" Margin="2,2,2,2" Background="LightBlue">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="2*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <Button Name="CounterFinishedButton" Grid.Row="0" Grid.RowSpan="2" Grid.Column="1" Content="Waiting" Click="CounterFinishedButton_Click" FontSize="35" FontWeight="Bold" Margin="1,1,1,1"/>
+
+                        <Button Name="KeyPadInc" Grid.RowSpan="3" Grid.Column="2" Content="+" FontSize="50" Click="CounterKeyPad_Click" Margin="1,1,1,1"/>
+
+                        <Button Name="KeyPadBobble" Grid.Row="0" Grid.Column="0" Content="Bobble" FontSize="50" Click="CounterKeyPad_Click" Margin="1,1,1,1" Background="Yellow"/>
+                        <Button Name="KeyPadDrop" Grid.Row="1" Grid.Column="0" Content="Drop" FontSize="50" Click="CounterKeyPad_Click" Margin="1,1,1,1" Background="LightSalmon"/>
+                        <Button Name="KeyPadCatch" Grid.Row="2" Grid.Column="0" Content="Catch" FontSize="50" Click="CounterKeyPad_Click" Margin="1,1,1,1" Background="LightGreen" Grid.ColumnSpan="2"/>
+                    </Grid>
+                </Grid>
+            </TabItem>
+            <TabItem Header="Difficulty" Visibility="Collapsed">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="150"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <Grid Grid.ColumnSpan="2" Margin="0,0,0,5" Background="LightGray">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock Text="Routine:" Margin="0,0,10,0" VerticalAlignment="Center"/>
+                        <TextBlock Grid.Column="1" Text="{Binding ElementName=MainWindowObj, Path=JudgeRoutineText, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center"/>
+                        <Label Content="{Binding ElementName=MainWindowObj, Path=NetStatusStr, UpdateSourceTrigger=PropertyChanged}" Grid.Column="2" Background="{Binding ElementName=MainWindowObj, Path=NetStatusColor, UpdateSourceTrigger=PropertyChanged}"/>
+                    </Grid>
+
+                    <Grid Grid.Row="1">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <Label Content="{Binding ElementName=MainWindowObj, Path=DisplayDiffScore, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,5" FontSize="50" Background="LightGray"/>
+
+                        <Label Grid.Row="1" Content="{Binding ElementName=MainWindowObj, Path=CurrentTwoPointScoreDisplay, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,5" FontSize="80" Background="LightGray"/>
+                        
+                        <Grid Grid.Row="2" Background="LightGray">
+                            <Viewbox Margin="5,5,5,5">
+                                <TextBlock Text="{Binding ElementName=MainWindowObj, Path=TimeRemainingText, UpdateSourceTrigger=PropertyChanged}"/>
+                            </Viewbox>
+                        </Grid>
+
+                        <Button Name="DiffFinishedButton" Grid.Row="3" Content="Waiting" Click="DiffFinishedButton_Click" FontSize="35" FontWeight="Bold"/>
+                    </Grid>
+                    
+
+                    <Canvas Grid.Row="1" Grid.Column="1" Name="DiffCanvas" MouseDown="DiffCanvas_MouseDown" MouseUp="DiffCanvas_MouseUp" MouseMove="DiffCanvas_MouseMove">
+                        <Canvas.Background>
+                            <ImageBrush ImageSource="Diff Bg.png" Stretch="Uniform"/>
+                        </Canvas.Background>
+                    </Canvas>
+                </Grid>
+            </TabItem>
+            <TabItem Header="Artistic Impression" Visibility="Collapsed">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="5"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <Grid Grid.ColumnSpan="3" Margin="0,0,0,5" Background="LightGray">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock Text="Routine:" Margin="0,0,10,0" VerticalAlignment="Center"/>
+                        <TextBlock Grid.Column="1" Text="{Binding ElementName=MainWindowObj, Path=JudgeRoutineText, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center"/>
+                        <Label Content="{Binding ElementName=MainWindowObj, Path=NetStatusStr, UpdateSourceTrigger=PropertyChanged}" Grid.Column="2" Background="{Binding ElementName=MainWindowObj, Path=NetStatusColor, UpdateSourceTrigger=PropertyChanged}"/>
+                    </Grid>
+
+                    <Button Name="AiButton0" Style="{StaticResource MyButtonStyle}" Content="Caught First Throw" Grid.Row="1" Click="AI_Click" Margin="1,1,1,1" HorizontalContentAlignment="Center" FontSize="15" FontWeight="Bold"/>
+                    <Button Name="AiButton1" Style="{StaticResource MyButtonStyle}" Content="Caught Last Catch" Grid.Row="1" Grid.Column="1" Margin="1,1,1,1" Click="AI_Click" HorizontalContentAlignment="Center" FontSize="15" FontWeight="Bold"/>
+                    <Button Name="AiButton2" Style="{StaticResource MyButtonStyle}" Content="Caught Clock Coop" Grid.Row="1" Grid.Column="2" Margin="1,1,1,1" Click="AI_Click" HorizontalContentAlignment="Center" FontSize="15" FontWeight="Bold"/>
+                    <Button Name="AiButton3" Style="{StaticResource MyButtonStyle}" Content="Hit a Music Cue" Grid.Row="2" Grid.Column="0" Margin="1,1,1,1" Click="AI_Click" HorizontalContentAlignment="Center" FontSize="15" FontWeight="Bold"/>
+                    <Button Name="AiButton4" Style="{StaticResource MyButtonStyle}" Content="Caught UD Coop" Grid.Row="2" Grid.Column="1" Margin="1,1,1,1" Click="AI_Click" HorizontalContentAlignment="Center" FontSize="15" FontWeight="Bold"/>
+                    <Button Name="AiButton5" Style="{StaticResource MyButtonStyle}" Content="Caught Counter Coop" Grid.Row="2" Grid.Column="2" Margin="1,1,1,1" Click="AI_Click" HorizontalContentAlignment="Center" FontSize="15" FontWeight="Bold"/>
+                    <Button Name="AiButton6" Style="{StaticResource MyButtonStyle}" Content="Throw without re-grip" Grid.Row="3" Grid.Column="0" Margin="1,1,1,1" Click="AI_Click" HorizontalContentAlignment="Center" FontSize="13" FontWeight="Bold"/>
+                    <Button Name="AiButton7" Style="{StaticResource MyButtonStyle}" Content="1 Move with Pointed Toe" Grid.Row="3" Grid.Column="1" Margin="1,1,1,1" Click="AI_Click" HorizontalContentAlignment="Center" FontSize="13" FontWeight="Bold"/>
+
+                    <Button Name="AiFinishedButton" Grid.Row="5" Grid.Column="2" Content="Waiting" Click="AiFinishedButton_Click" FontSize="35" FontWeight="Bold"/>
+
+                    <Grid Grid.Row="5" Background="LightGray">
+                        <Viewbox Margin="5,5,5,5">
+                            <TextBlock Text="{Binding ElementName=MainWindowObj, Path=TimeRemainingText, UpdateSourceTrigger=PropertyChanged}"/>
+                        </Viewbox>
+                    </Grid>
+                </Grid>
+            </TabItem>
+            <TabItem Header="Musicality" Visibility="Collapsed">
+                <Grid Background="DarkGray">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <Grid Grid.ColumnSpan="2" Margin="0,0,0,5" Background="LightGray">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                    
+                        <TextBlock Text="Routine:" Margin="0,0,10,0" VerticalAlignment="Center"/>
+                        <TextBlock Grid.Column="1" Text="{Binding ElementName=MainWindowObj, Path=JudgeRoutineText, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center"/>
+                        <Label Content="{Binding ElementName=MainWindowObj, Path=NetStatusStr, UpdateSourceTrigger=PropertyChanged}" Grid.Column="2" Background="{Binding ElementName=MainWindowObj, Path=NetStatusColor, UpdateSourceTrigger=PropertyChanged}"/>
+                    </Grid>
+
+                    <Grid Grid.Row="1" Margin="1,1,1,1" Background="Ivory" Grid.ColumnSpan="1">
+                        <Viewbox Grid.Column="0" Margin="10,10,10,10">
+                            <TextBlock Text="Musicality Score"/>
+                        </Viewbox>
+                    </Grid>
+                    <Grid Grid.Row="2" Margin="1,1,1,1" Background="Ivory">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="7*"/>
+                            <ColumnDefinition Width="2*"/>
+                        </Grid.ColumnDefinitions>
+                        <Slider Name="MusicSlider0" Margin="10,10,10,10" Grid.Column="0" VerticalAlignment="Center" Minimum="0" Maximum="10" TickFrequency=".1" IsSnapToTickEnabled="True">
+                            <Slider.LayoutTransform>
+                                <ScaleTransform ScaleX="6" ScaleY="6"/>
+                            </Slider.LayoutTransform>
+                        </Slider>
+                        <Viewbox Grid.Column="2">
+                            <TextBlock Text="{Binding ElementName=MusicSlider0, Path=Value}"/>
+                        </Viewbox>
+                    </Grid>
+                    <Grid Grid.Row="3">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <Grid Background="LightGray">
+                            <Viewbox Margin="5,5,5,5">
+                                <TextBlock Text="{Binding ElementName=MainWindowObj, Path=TimeRemainingText, UpdateSourceTrigger=PropertyChanged}"/>
+                            </Viewbox>
+                        </Grid>
+
+                        <Button Name="MusicFinishedButton" Grid.Column="2" Content="Waiting" FontSize="35" FontWeight="Bold" Click="MusicFinishedButton_Click"/>
+                    </Grid>
+                </Grid>
+            </TabItem>
+            <TabItem Header="Results" Visibility="Collapsed">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    
+                    <Grid Margin="0,0,0,5">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto" MinWidth="100"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock Text="Routine Length in Minutes:" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                        <TextBox Grid.Column="1" Name="RoutineLengthText" Margin="0,0,10,0" TextChanged="RoutineLengthText_TextChanged"/>
+
+                        <TextBlock Grid.Column="2" Text="Routine Number:" Margin="0,0,10,0" VerticalAlignment="Center"/>
+                        <Button Name="RoutineNumberButton" Grid.Column="3" Content="{Binding ElementName=MainWindowObj, Path=RoutineButtonText, UpdateSourceTrigger=PropertyChanged}" Click="RoutineNumberButton_Click" VerticalAlignment="Center"/>
+                        <TextBlock Text="1" Grid.Column="4" Margin="2,0,0,0" Background="{Binding ElementName=MainWindowObj, Path=Judge1Bg, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center"/>
+                        <TextBlock Text="2" Grid.Column="5" Margin="2,0,0,0" Background="{Binding ElementName=MainWindowObj, Path=Judge2Bg, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center"/>
+                        <TextBlock Text="3" Grid.Column="6" Margin="2,0,0,0" Background="{Binding ElementName=MainWindowObj, Path=Judge3Bg, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center"/>
+                        <Label Name="NetStatusLabel" Content="{Binding ElementName=MainWindowObj, Path=NetStatusStr, UpdateSourceTrigger=PropertyChanged}" Grid.Column="7" Background="{Binding ElementName=MainWindowObj, Path=NetStatusColor, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center"/>
+                    </Grid>
+                    
+                    <TextBox Grid.Row="1" Name="TeamsTextBox" AcceptsReturn="True"/>
+                    <Grid Grid.Row="2">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <Button Name="SetTeamsButton" Grid.Column="0" Content="Set Teams" Click="SetTeamsButton_Click"/>
+                        <Button Name="SaveScoresButton" Grid.Column="1" Content="Save Scores" Click="SaveScoresButton_Click"/>
+                        <Button Name="LoadScoresButton" Grid.Column="2" Content="Load Scores" Click="LoadScoresButton_Click"/>
+                        <Button Name="ClearScoresButton" Grid.Column="3" Content="Clear Scores" Click="ClearScoresButton_Click"/>
+                        <Button Name="SendHatNamesButton" Grid.Column="4" Content="Send Hat Names" Click="SendHatNamesButton_Click"/>
+                        <Button Name="ExportResultsButton" Grid.Column="5" Content="Export Results" Click="ExportResultsButton_Click"/>
+                    </Grid>
+                    <TextBox Grid.Row="3" Name="ResultsTextBox" AcceptsReturn="True" IsReadOnly="True"/>
+                    <Grid Grid.Row="4">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="2*"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <ItemsControl ItemsSource="{Binding ElementName=MainWindowObj, Path=BackupDisplayList, UpdateSourceTrigger=PropertyChanged}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Height="20" Text="{Binding TeamName}" />
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                        <ItemsControl Grid.Column="1" ItemsSource="{Binding ElementName=MainWindowObj, Path=BackupDisplayList, UpdateSourceTrigger=PropertyChanged}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Height="20" Text="{Binding CurrentScoreText}" />
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                        <ItemsControl Grid.Column="2" ItemsSource="{Binding ElementName=MainWindowObj, Path=BackupDisplayList, UpdateSourceTrigger=PropertyChanged}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Height="20" Text="{Binding BackupScoreText}" />
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                        <ItemsControl Grid.Column="3" ItemsSource="{Binding ElementName=MainWindowObj, Path=BackupDisplayList, UpdateSourceTrigger=PropertyChanged}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Button Height="20" Content="{Binding ButtonText}" Click="BackupDisplayButton_Click" Tag="{Binding TeamName}"/>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </Grid>
+                    <Grid Grid.Row="5">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width=".25*"/>
+                            <ColumnDefinition Width=".25*"/>
+                            <ColumnDefinition Width=".25*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <Button Click="ToggleScoreboard_Click" Content="Toggle Ranking"/>
+                        <Button Click="ToggleScoreboardRandom_Click" Grid.Column="1" Content="Toggle Random"/>
+                        <Button Click="StartHatPicking_Click" Grid.Column="2" Content="Start Hat Picking"/>
+                        
+                        <Button Name="HeadJudgeStartButton" Grid.Column="3" Click="HeadJudgeStartButton_Click" Content="Start Routine" Background="LightGreen" Foreground="White" FontWeight="Bold" FontSize="30"/>
+                    </Grid>
+                </Grid>
+            </TabItem>
+            <TabItem Header="Scoreboard" Visibility="Collapsed">
+                <Grid Background="LightSteelBlue">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="1.5*"/>
+                    </Grid.RowDefinitions>
+
+                    <Grid Background="LightSteelBlue">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height=".5*"/>
+                            <RowDefinition Height=".7*"/>
+                        </Grid.RowDefinitions>
+
+                        <Grid Background="LightGray" Margin="5,5,5,0">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="5"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <Grid Grid.Column="1" Background="Silver">
+                                <Label Content="Judge1" HorizontalAlignment="Center"/>
+                            </Grid>
+                            <Label Grid.Column="2" Content="Judge2" HorizontalAlignment="Center"/>
+                            <Grid Grid.Column="3" Background="Silver">
+                                <Label Content="Judge3" HorizontalAlignment="Center"/>
+                            </Grid>
+                            <Label Grid.Column="4" Content="Total" HorizontalAlignment="Center"/>
+
+                            <Viewbox Grid.Row="1" HorizontalAlignment="Left">
+                                <TextBlock Text="{Binding ElementName=MainWindowObj, Path=LeaderTeamText, UpdateSourceTrigger=PropertyChanged}" Foreground="Peru" VerticalAlignment="Center"/>
+                            </Viewbox>
+                            <Grid Grid.Row="1" Grid.Column="1" Background="Silver">
+                                <Viewbox Margin="12,5,12,5">
+                                    <TextBlock Text="{Binding ElementName=MainWindowObj, Path=Judge1LeaderScoreDisplay, UpdateSourceTrigger=PropertyChanged}" Foreground="Peru" TextAlignment="Center"/>
+                                </Viewbox>
+                            </Grid>
+                            <Viewbox Grid.Row="1" Grid.Column="2" HorizontalAlignment="Left" Margin="12,5,12,5">
+                                <TextBlock Text="{Binding ElementName=MainWindowObj, Path=Judge2LeaderScoreDisplay, UpdateSourceTrigger=PropertyChanged}" Foreground="Peru" VerticalAlignment="Center"/>
+                            </Viewbox>
+                            <Grid Grid.Row="1" Grid.Column="3" Background="Silver">
+                                <Viewbox HorizontalAlignment="Left" Margin="12,5,12,5">
+                                    <TextBlock Text="{Binding ElementName=MainWindowObj, Path=Judge3LeaderScoreDisplay, UpdateSourceTrigger=PropertyChanged}" Foreground="Peru" VerticalAlignment="Center"/>
+                                </Viewbox>
+                            </Grid>
+                            <Viewbox Grid.Row="1" Grid.Column="4" HorizontalAlignment="Left" Margin="12,5,12,5">
+                                <TextBlock Text="{Binding ElementName=MainWindowObj, Path=TotalLeaderScoreDisplay, UpdateSourceTrigger=PropertyChanged}" Foreground="Peru" VerticalAlignment="Center" FontWeight="ExtraBold"/>
+                            </Viewbox>
+
+                            <Viewbox Grid.Row="2" HorizontalAlignment="Left">
+                                <TextBlock Text="{Binding ElementName=MainWindowObj, Path=CurrentTeamText, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center"/>
+                            </Viewbox>
+                            <Grid Grid.Row="2" Grid.Column="1" Background="Silver">
+                                <Viewbox Margin="12,5,12,5">
+                                    <TextBlock Text="{Binding ElementName=MainWindowObj, Path=Judge1ScoreDisplay, UpdateSourceTrigger=PropertyChanged}" TextAlignment="Center"/>
+                                </Viewbox>
+                            </Grid>
+                            <Viewbox Grid.Row="2" Grid.Column="2" HorizontalAlignment="Left" Margin="12,5,12,5">
+                                <TextBlock Text="{Binding ElementName=MainWindowObj, Path=Judge2ScoreDisplay, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center"/>
+                            </Viewbox>
+                            <Grid Grid.Row="2" Grid.Column="3" Background="Silver">
+                                <Viewbox HorizontalAlignment="Left" Margin="12,5,12,5">
+                                    <TextBlock Text="{Binding ElementName=MainWindowObj, Path=Judge3ScoreDisplay, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center"/>
+                                </Viewbox>
+                            </Grid>
+                            <Viewbox Grid.Row="2" Grid.Column="4" HorizontalAlignment="Left" Margin="12,5,12,5">
+                                <TextBlock Text="{Binding ElementName=MainWindowObj, Path=TotalScoreDisplay, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center" FontWeight="ExtraBold"/>
+                            </Viewbox>
+
+                            <Grid Grid.Row="3" Grid.ColumnSpan="5" Background="LightSteelBlue"/>
+
+                            <Viewbox Grid.Row="4" HorizontalAlignment="Left">
+                                <TextBlock Text="{Binding ElementName=MainWindowObj, Path=ScoreboardTimeText, UpdateSourceTrigger=PropertyChanged}" TextAlignment="Left" HorizontalAlignment="Left"/>
+                            </Viewbox>
+                        </Grid>
+
+                        <Grid Grid.Row="1">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <Grid Background="LightGray" Margin="5,5,5,0">
+                                <TextBlock Background="LightGray" Text="Judge Multiplier" HorizontalAlignment="Center" FontWeight="ExtraBold" FontSize="60"/>
+                            </Grid>
+                            <Grid Grid.Column="1" Background="LightGray" Margin="5,5,5,0">
+                                <TextBlock Background="LightGray" Text="Splits" HorizontalAlignment="Center" FontWeight="ExtraBold" FontSize="60"/>
+                            </Grid>
+                        </Grid>
+
+                        <Grid Grid.Row="2">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <Grid Grid.Row="1" Margin="5,5,5,0" Background="LightGray">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height=".5*"/>
+                                    <RowDefinition Height="*"/>
+                                </Grid.RowDefinitions>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <Viewbox>
+                                    <TextBlock Text="Judge 1" HorizontalAlignment="Center" FontWeight="ExtraBold" VerticalAlignment="Center"/>
+                                </Viewbox>
+                                <Viewbox Grid.Column="1">
+                                    <TextBlock Text="Judge 2" HorizontalAlignment="Center" FontWeight="ExtraBold" VerticalAlignment="Center"/>
+                                </Viewbox>
+                                <Viewbox Grid.Column="2">
+                                    <TextBlock Text="Judge 3" HorizontalAlignment="Center" FontWeight="ExtraBold" VerticalAlignment="Center"/>
+                                </Viewbox>
+                                <Viewbox Grid.Row="1">
+                                    <TextBlock Text="{Binding ElementName=MainWindowObj, Path=Judge1MultiplierDisplay, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment="Center" FontWeight="ExtraBold" VerticalAlignment="Center"/>
+                                </Viewbox>
+                                <Viewbox Grid.Row="1" Grid.Column="1">
+                                    <TextBlock Text="{Binding ElementName=MainWindowObj, Path=Judge2MultiplierDisplay, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment="Center" FontWeight="ExtraBold" VerticalAlignment="Center"/>
+                                </Viewbox>
+                                <Viewbox Grid.Row="1" Grid.Column="2">
+                                    <TextBlock Text="{Binding ElementName=MainWindowObj, Path=Judge3MultiplierDisplay, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment="Center" FontWeight="ExtraBold" VerticalAlignment="Center"/>
+                                </Viewbox>
+                            </Grid>
+                            <Grid Grid.Column="1" Margin="5,5,5,0" Background="LightGray">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height=".5*"/>
+                                    <RowDefinition Height="*"/>
+                                </Grid.RowDefinitions>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <Viewbox>
+                                    <TextBlock Text="Leader" HorizontalAlignment="Center" FontWeight="ExtraBold" VerticalAlignment="Center" Foreground="Peru"/>
+                                </Viewbox>
+                                <Viewbox Grid.Column="1">
+                                    <TextBlock Text="Current" HorizontalAlignment="Center" FontWeight="ExtraBold" VerticalAlignment="Center"/>
+                                </Viewbox>
+                                <Viewbox Grid.Column="2">
+                                    <TextBlock Text="Delta" HorizontalAlignment="Center" FontWeight="ExtraBold" VerticalAlignment="Center"/>
+                                </Viewbox>
+                                <Viewbox Grid.Row="1">
+                                    <TextBlock Text="{Binding ElementName=MainWindowObj, Path=LeaderSplitTotalText, UpdateSourceTrigger=PropertyChanged}" Foreground="Peru" HorizontalAlignment="Center" FontWeight="ExtraBold" VerticalAlignment="Center"/>
+                                </Viewbox>
+                                <Viewbox Grid.Row="1" Grid.Column="1">
+                                    <TextBlock Text="{Binding ElementName=MainWindowObj, Path=CurrentSplitTotalText, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment="Center" FontWeight="ExtraBold" VerticalAlignment="Center"/>
+                                </Viewbox>
+                                <Viewbox Grid.Row="1" Grid.Column="2">
+                                    <TextBlock Grid.Row="1" Grid.Column="2" Text="{Binding ElementName=MainWindowObj, Path=DeltaTotalText, UpdateSourceTrigger=PropertyChanged}" Foreground="{Binding ElementName=MainWindowObj, Path=DeltaTotalBrush, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment="Center" FontWeight="ExtraBold" VerticalAlignment="Center"/>
+                                </Viewbox>
+                            </Grid>
+                        </Grid>
+                    </Grid>
+
+                    <Canvas Name="DiffGraphCanvas" Grid.Row="1" Background="LightGray" Margin="5,5,5,5"/>
+                </Grid>
+            </TabItem>
+            <TabItem Header="Rankings" Visibility="Collapsed">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    
+                    <Grid Background="LightSteelBlue">
+                        <TextBlock Text="Rankings" FontSize="40" FontWeight="Bold" HorizontalAlignment="Center"/>
+                    </Grid>
+
+                    <ListView Grid.Row="1" TextElement.FontSize="50" ItemsSource="{Binding ElementName=MainWindowObj, Path=ScorboardRankings, UpdateSourceTrigger=PropertyChanged}" ItemContainerStyle="{StaticResource alternatingListViewItemStyle}" AlternationCount="2">
+                        <ListView.View>
+                            <GridView>
+                                <GridViewColumn Width="800" Header="Team Name" DisplayMemberBinding="{Binding TeamName}"/>
+                                <GridViewColumn Width="220" Header="Judge1" DisplayMemberBinding="{Binding Judge1Score}"/>
+                                <GridViewColumn Width="220" Header="Judge2" DisplayMemberBinding="{Binding Judge2Score}"/>
+                                <GridViewColumn Width="220" Header="Judge3" DisplayMemberBinding="{Binding Judge3Score}"/>
+                                <GridViewColumn Width="220" Header="Total" DisplayMemberBinding="{Binding TotalScore}"/>
+                                <GridViewColumn Width="220" Header="" DisplayMemberBinding="{Binding Delta}"/>
+                            </GridView>
+                        </ListView.View>
+                    </ListView>
+
+                    <Grid Grid.Row="2" Background="LightSteelBlue">
+                        <TextBlock Text="Teams Left To Play" FontSize="40" FontWeight="Bold" HorizontalAlignment="Center"/>
+                    </Grid>
+
+                    <ListView Grid.Row="3" TextElement.FontSize="50" ItemsSource="{Binding ElementName=MainWindowObj, Path=ScorboardToPlay, UpdateSourceTrigger=PropertyChanged}" ItemContainerStyle="{StaticResource alternatingListViewItemStyle}" AlternationCount="2">
+                        
+                    </ListView>
+                </Grid>
+            </TabItem>
+            <TabItem Header="HatScoreboard" Visibility="Collapsed">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width=".25*"/>
+                        <ColumnDefinition Width=".02*"/>
+                        <ColumnDefinition Width=".25*"/>
+                    </Grid.ColumnDefinitions>
+                    <Canvas Name="WheelCanvas"/>
+                    <Grid Grid.Column="2" Background="DarkGray"/>
+                    <StackPanel Name="HatTeamsStack" Grid.Column="1"/>
+                    <StackPanel Name="HatTeamsStack2" Grid.Column="3"/>
+                </Grid>
+            </TabItem>
+        </TabControl>
+    </Grid>
+</Window>
+
+    
