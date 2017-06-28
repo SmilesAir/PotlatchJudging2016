@@ -36,10 +36,12 @@ namespace Potlatch_Judger
 #if DEBUG
 		public static bool bSoundEnabled = false;
 		public static bool bAnyFinished = true;
+        public static bool bOnlyConnectedFinished = true;
 		public static double RoutineMinutesLength = .1;
 #else
-		public static bool bSoundEnabled = true;
+        public static bool bSoundEnabled = true;
 		public static bool bAnyFinished = false;
+        public static bool bOnlyConnectedFinished = true;
 		public static double RoutineMinutesLength = 3;
 #endif
 		public static MainWindow SelfObj;
@@ -1236,8 +1238,10 @@ namespace Potlatch_Judger
 		{
 			if (bRoutineRecording)
 			{
-				if (Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl))
-					ResetRoutine(true);
+                if (Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl))
+                {
+                    FinishRoutineServer(true);
+                }
 			}
 			else if (NetworkComms.AllConnectionInfo().Count > 1)
 			{
@@ -1270,6 +1274,8 @@ namespace Potlatch_Judger
 				}
 
 				TwoPointFinishRoutine();
+
+                FinishTwoPoint();
 			}));
 		}
 
@@ -1356,16 +1362,21 @@ namespace Potlatch_Judger
 		{
 			if (bWaitingResults)
 			{
-				bWaitingResults = false;
-				bWaitingForReady = true;
-				bRoutineRecording = false;
-
-				SendToServerNetData("C2SFinished", TwoPointJudgeId);
-
-				CurJudgeDiffData.SendBackup();
-				WriteBackupToDisk();
+                FinishTwoPoint();
 			}
 		}
+
+        private void FinishTwoPoint()
+        {
+            bWaitingResults = false;
+            bWaitingForReady = true;
+            bRoutineRecording = false;
+
+            SendToServerNetData("C2SFinished", TwoPointJudgeId);
+
+            CurJudgeDiffData.SendBackup();
+            WriteBackupToDisk();
+        }
 
 		private void CounterFinishedButton_Click(object sender, RoutedEventArgs e)
 		{
@@ -1442,7 +1453,12 @@ namespace Potlatch_Judger
 			SortedResults.Insert(InsertIndex, InScore);
 		}
 
-		public void FinishRoutineServer()
+        public void FinishRoutineServer()
+        {
+            FinishRoutineServer(false);
+        }
+
+		public void FinishRoutineServer(bool bCancel)
 		{
 			RoutineScore NewScore = new RoutineScore(
 				CalcJudgeTwoPointScore("Judge1"), CalcJudgeTwoPointScore("Judge2"), CalcJudgeTwoPointScore("Judge3"), CurSplits, true);
@@ -1467,12 +1483,15 @@ namespace Potlatch_Judger
 			if (CurrentRoutineIndex < PoolScores.AllRoutineScores.Count)
 				UpdateSortedResults(PoolScores.AllRoutineScores[CurrentRoutineIndex]);
 
-			if (CurrentRoutineIndex + 1 < PoolScores.AllRoutineScores.Count)
-				++CurrentRoutineIndex;
+            if (!bCancel)
+            {
+                if (CurrentRoutineIndex + 1 < PoolScores.AllRoutineScores.Count)
+                    ++CurrentRoutineIndex;
+            }
 
 			bResultsDirty = true;
 
-			ResetRoutine(false);
+			ResetRoutine(bCancel);
 
 			ResetSeverScores();
 
@@ -2751,8 +2770,12 @@ namespace Potlatch_Judger
 
 			if (bWaitingResults)
 			{
-				if (((bAnyFinished && FinishedJudgerFlags > 0) || FinishedJudgerFlags == 7) && RecievedCounterData.Count == 0)
-					FinishRoutineServer();
+                if ((bAnyFinished && FinishedJudgerFlags > 0) ||
+                    (bOnlyConnectedFinished && connectedJudgeFlags == FinishedJudgerFlags) ||
+                    FinishedJudgerFlags == 7)
+                {
+                    FinishRoutineServer();
+                }
 			}
 			else
 				FinishedJudgerFlags = 0;

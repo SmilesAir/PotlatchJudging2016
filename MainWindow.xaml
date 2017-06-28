@@ -341,7 +341,7 @@
                         </Grid.ColumnDefinitions>
 
                         <TextBlock Text="Routine Length in Minutes:" Margin="0,0,5,0" VerticalAlignment="Center"/>
-                        <TextBox Grid.Column="1" Name="RoutineLengthText" Margin="0,0,10,0" TextChanged="RoutineLengthText_TextChanged"/>
+                        <TextBox Grid.Column="1" Name="RoutineLengthText" Text="2" Margin="0,0,10,0" TextChanged="RoutineLengthText_TextChanged" VerticalContentAlignment="Center"/>
 
                         <TextBlock Grid.Column="2" Text="Routine Number:" Margin="0,0,10,0" VerticalAlignment="Center"/>
                         <Button Name="RoutineNumberButton" Grid.Column="3" Content="{Binding ElementName=MainWindowObj, Path=RoutineButtonText, UpdateSourceTrigger=PropertyChanged}" Click="RoutineNumberButton_Click" VerticalAlignment="Center"/>
