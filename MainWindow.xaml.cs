@@ -57,6 +57,7 @@ namespace Potlatch_Judger
 		public static bool bWaitingForReady = true;
 		DateTime StartTime = new DateTime();
 		bool bEnteringRoutineNumber = false;
+        int CurrentEnteringRoutineNumber = 0;
 		DiffScoreData CurDiffScore = new DiffScoreData();
 		List<DiffScoreData> DiffScoreResults = new List<DiffScoreData>();
 		bool bIsDiffMouse = false;
@@ -106,7 +107,8 @@ namespace Potlatch_Judger
 			get { return _CurrentRoutineIndex; }
 			set
 			{
-				_CurrentRoutineIndex = value; NotifyPropertyChanged("RoutineButtonText");
+				_CurrentRoutineIndex = value;
+                NotifyPropertyChanged("RoutineButtonText");
 				UpdateTeamInfo();
 			}
 		}
@@ -881,22 +883,30 @@ namespace Potlatch_Judger
 		{
 			CurrentRoutineIndex = -1;
 			bEnteringRoutineNumber = true;
+            CurrentEnteringRoutineNumber = 0;
 		}
 
 		private void MainWindowObj_KeyDown(object sender, KeyEventArgs e)
 		{
 			if (bEnteringRoutineNumber)
 			{
-				bEnteringRoutineNumber = false;
+                if (e.Key >= Key.D0 && e.Key <= Key.D9)
+                {
+                    if (CurrentEnteringRoutineNumber > 0)
+                    {
+                        CurrentEnteringRoutineNumber *= 10;
+                    }
 
-				if (e.Key >= Key.D1 && e.Key <= Key.D9)
-				{
-					int RoutineIndex = ((int)e.Key) - ((int)Key.D1);
-					if (RoutineIndex < PoolScores.AllRoutineScores.Count)
-					{
-						CurrentRoutineIndex = RoutineIndex;
-					}
-				}
+                    CurrentEnteringRoutineNumber += ((int)e.Key) - ((int)Key.D0);
+                }
+                else
+                {
+                    CurrentRoutineIndex = Math.Min(CurrentEnteringRoutineNumber - 1, PoolScores.AllRoutineScores.Count - 1);
+
+                    bEnteringRoutineNumber = false;
+
+                    e.Handled = true;
+                }
 			}
 		}
 

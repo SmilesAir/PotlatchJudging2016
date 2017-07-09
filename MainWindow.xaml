@@ -5,7 +5,7 @@
         Loaded="Window_Loaded"
         Closing="Window_Closing"
         Name="MainWindowObj"
-        KeyDown="MainWindowObj_KeyDown"
+        PreviewKeyDown="MainWindowObj_KeyDown"
         SizeChanged="MainWindowObj_SizeChanged">
 
 
